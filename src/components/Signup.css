@@ -9,7 +9,8 @@ html,
   font-size: 2rem;
 }
 body {
-  background: #ffefba; /* fallback for old browsers */
+  background: #ffefba
+  ; /* fallback for old browsers */
   background: -webkit-linear-gradient(
     to right,
     #ffffff,
@@ -20,7 +21,7 @@ body {
     #ffffff,
     #ffefba
   ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-
+  font-family: "Montserrat", sans-serif;
   display: flex;
   align-items: center;
   padding-top: 40px;
@@ -33,7 +34,7 @@ body {
   margin: auto;
   border: 2px solid black;
   width: 35%;
-  font-family: "Montserrat", sans-serif;
+
   text-align: center;
 }
 
@@ -76,8 +77,8 @@ body {
   }
 }
 @media only screen and (max-width: 385px) {
-    .form-signin {
-      width: 90%;
-      border: none;
-    }
+  .form-signin {
+    width: 90%;
+    border: none;
   }
+}
