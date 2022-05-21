@@ -1,4 +1,7 @@
+import { useAuthenticated } from "../utils/auth";
+
 export default function Classes() {
+    const [token, setToken] = useAuthenticated();
     return (
         <div className="container">
             <h1>Your classes</h1>

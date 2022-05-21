@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUnauthenticated } from "../utils/auth";
 import "./Signup.css";
 
 const Signup = () => {
+    const setToken = useUnauthenticated();
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -21,6 +23,7 @@ const Signup = () => {
             }),
         });
         if (response.status === 200) {
+            // TODO: setToken()
             navigate("/profile");
         } else {
             console.log(response);

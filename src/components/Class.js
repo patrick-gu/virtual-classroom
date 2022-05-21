@@ -1,6 +1,8 @@
 import { useParams } from "react-router-dom";
+import { useAuthenticated } from "../utils/auth";
 
-export default function Class({ id }) {
+export default function Class() {
+    const [token, setToken] = useAuthenticated();
     const { classId } = useParams();
     const quizzes = [
         {
