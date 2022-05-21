@@ -248,12 +248,7 @@ fastify.get(
     const user = await prisma.user.findUnique({
       where: { id },
       select: {
-        classrooms: {
-          select: {
-            classroomId: true,
-            role: true,
-          },
-        },
+        classrooms: true,
         username: true,
       },
     });
@@ -261,7 +256,10 @@ fastify.get(
     reply.send({
       success: true,
       id: user.id,
-      classrooms: user.classrooms,
+      classrooms: user.classrooms.map(({ role, classroomId }) => ({
+        role,
+        id: classroomId,
+      })),
       username: user.username,
     });
   }
@@ -282,7 +280,7 @@ fastify.setErrorHandler(function (error, request, reply) {
     return;
   }
   fastify.log.error(error);
-  reply.status(500).send({ error: "an error occured" });
+  reply.status(500).send({ success: false, error: "an error occured" });
 });
 
 const start = async () => {
