@@ -20,7 +20,7 @@ const fastify = Fastify({
 });
 
 fastify.get("/", async (request, reply) => {
-  return { hello: "world" };
+  reply.send({ hello: "world" });
 });
 
 fastify.post(
@@ -61,6 +61,7 @@ fastify.post(
     const existing = await prisma.user.count({
       where: { username },
     });
+
     if (existing) {
       reply.status(409);
       reply.send({ success: false, error: "Username already exist!" });
@@ -79,7 +80,7 @@ fastify.post(
         id: true,
       },
     });
-    reply.send({ success: true, token: getSignedToken(id) });
+    if (id) reply.send({ success: true, token: getSignedToken(id) });
   }
 );
 
@@ -113,6 +114,105 @@ fastify.post(
       reply.send({ success: false, error: "Wrong password!" });
     }
     reply.send({ success: true, token: getSignedToken(id) });
+  }
+);
+
+// User joining the classroom(using name of classroom as code)
+
+fastify.post(
+  "/api/v1/classrooms/join",
+  {
+    schema: {
+      body: {
+        type: "object",
+        properties: {
+          code: { type: "string" },
+        },
+      },
+    },
+  },
+  async (request, reply) => {
+    const { code } = request.body;
+    const { name, users, messages, quizzes } =
+      await prisma.classroom.findUnique({
+        where: { name: code },
+        select: { name: true, users: true, messages: true, quizzes: true },
+      });
+    // You need to update users here since a user joined
+    if (name) reply.send({ success: true, name, users, messages, quizzes });
+    else {
+      reply.status(401);
+      reply.send({ success: false });
+    }
+  }
+);
+
+// Creating a classroom
+
+fastify.post(
+  "/api/v1/classrooms/create",
+  {
+    schema: {
+      body: {
+        type: "object",
+        properties: {
+          code: { type: "string" },
+        },
+      },
+    },
+  },
+  async (request, reply) => {
+    const { code } = request.body;
+    const { id } = await prisma.classroom.create({
+      data: {
+        name: code,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (id) {
+      reply.status(201);
+      reply.send({ success: true, id });
+    } else {
+      reply.status(500);
+      reply.send({ success: false, error: "Unable to create a classroom" });
+    }
+  }
+);
+
+// Getting classrooms of a user by his username
+
+fastify.get(
+  "/api/v1/classrooms",
+  {
+    schema: {
+      query: {
+        type: "object",
+        properties: {
+          username: { type: "string" },
+        },
+      },
+    },
+  },
+  async (request, reply) => {
+    const { username } = request.query;
+    const user = await prisma.user.findUnique({
+      where: { username },
+      select: { id: true, classrooms: true, username: true },
+    });
+    if (user) {
+      reply.status(200);
+      reply.send({
+        success: true,
+        id: user.id,
+        classrooms: user.classrooms,
+        username: user.username,
+      });
+    } else {
+      reply.status(404);
+      reply.send({ success: false, error: "Invalid username!" });
+    }
   }
 );
 

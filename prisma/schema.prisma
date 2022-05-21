@@ -30,6 +30,7 @@ enum Role {
 
 model Classroom {
   id       String            @id @default(uuid()) @db.Uuid
+  name     String             @unique
   users    UserInClassroom[]
   messages Message[]
   quizzes  Quiz[]
