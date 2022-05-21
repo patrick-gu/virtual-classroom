@@ -9,6 +9,25 @@ dotenv.config();
 
 const prisma = new PrismaClient();
 
+// fetch a user by his/her username
+
+const getUserByUsername = async (username) => {
+  const user = await prisma.user.findUnique({
+    where: { username },
+    select: { id: true, classrooms: true, username: true },
+  });
+  return user;
+};
+
+// fetch a classroom by its name
+const getClassByName = async (code) => {
+  const classroom = await prisma.classroom.findUnique({
+    where: { name: code },
+    select: { name: true, users: true, messages: true, quizzes: true },
+  });
+  return classroom;
+};
+
 const getSignedToken = function (id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
@@ -25,6 +44,7 @@ const fastify = Fastify({
 
 fastify.get("/", async (request, reply) => {
   reply.send({ hello: "world" });
+  console.log("reached");
 });
 
 fastify.post(
@@ -262,6 +282,78 @@ fastify.get(
       })),
       username: user.username,
     });
+  }
+);
+
+//  Getting quizzes from a classroom
+
+fastify.get(
+  "/api/v1/classrooms/quizzes",
+  {
+    schema: {
+      query: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+        },
+      },
+    },
+  },
+  async (request, reply) => {
+    const { name } = request.query;
+    const { quizzes } = await getClassByName(name);
+    if (quizzes) {
+      reply.status(200);
+      reply.send({ success: true, quizzes });
+    } else {
+      reply.status(401);
+      reply.send({ success: false, error: "Invalid classroom!" });
+    }
+  }
+);
+
+// Creating quiz
+// Datbase logic to be updated(I think mine is wrong because tables are connected to each other and I did not do so)
+fastify.post(
+  "/api/v1/classrooms/quizzes/create",
+  {
+    schema: {
+      body: {
+        type: "object",
+        properties: {
+          username: { type: "string" },
+          classroomName: { type: "string" },
+          questions: { type: "array" },
+        },
+      },
+    },
+  },
+  async (request, reply) => {
+    const { username, classroomName, questions } = request.body;
+    const user = await getUserByUsername(username);
+    if (user.role === "Teacher") {
+      const classroom = await getClassByName(classroomName);
+      const quiz = await prisma.quiz.create({
+        data: {
+          classroom,
+          classroomId: classroom.id,
+          questions,
+        },
+        select: {
+          id: true,
+        },
+      });
+      if (quiz) {
+        reply.status(200);
+        reply.send({ success: true, quiz });
+      } else {
+        reply.status(401);
+        reply.send({ success: false, error: "Invalid classroom!" });
+      }
+    } else {
+      reply.status(401);
+      reply.send({ success: false, error: "Not a teacher!" });
+    }
   }
 );
 
