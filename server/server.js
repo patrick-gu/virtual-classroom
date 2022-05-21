@@ -15,6 +15,10 @@ const getSignedToken = function (id) {
   });
 };
 
+const verifySignedToken = function (token) {
+  return jwt.verify(token, process.env.JWT_SECRET).id;
+};
+
 const fastify = Fastify({
   logger: true,
 });
@@ -45,10 +49,12 @@ fastify.post(
     ) {
       reply.status(400);
       reply.send({ success: false, error: "Invalid username!" });
+      return;
     }
     if (typeof password !== "string" || !(10 <= password.length)) {
       reply.status(400);
       reply.send({ success: false, error: "Invalid password!" });
+      return;
     }
     if (role === "student") {
       role = "Student";
@@ -57,6 +63,7 @@ fastify.post(
     } else {
       reply.status(400);
       reply.send({ success: false, error: "Invalid role!" });
+      return;
     }
     const existing = await prisma.user.count({
       where: { username },
@@ -65,6 +72,7 @@ fastify.post(
     if (existing) {
       reply.status(409);
       reply.send({ success: false, error: "Username already exist!" });
+      return;
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -80,7 +88,12 @@ fastify.post(
         id: true,
       },
     });
-    if (id) reply.send({ success: true, token: getSignedToken(id) });
+    if (!id) {
+      reply.status(500);
+      reply.send({ success: false, error: "Failed to create user!" });
+      return;
+    }
+    reply.send({ success: true, token: getSignedToken(id) });
   }
 );
 
@@ -99,19 +112,21 @@ fastify.post(
   },
   async (request, reply) => {
     const { username, password } = request.body;
-    const user = prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { username },
       select: { id: true, passwordHash: true },
     });
     if (!user) {
       reply.status(404);
       reply.send({ success: false, error: "Username not found!" });
+      return;
     }
     const { id, passwordHash } = user;
-    const matches = bcrypt.compare(password, passwordHash);
+    const matches = await bcrypt.compare(password, passwordHash);
     if (!matches) {
       reply.status(403);
       reply.send({ success: false, error: "Wrong password!" });
+      return;
     }
     reply.send({ success: true, token: getSignedToken(id) });
   }
@@ -136,7 +151,12 @@ fastify.post(
     const { name, users, messages, quizzes } =
       await prisma.classroom.findUnique({
         where: { name: code },
-        select: { name: true, users: true, messages: true, quizzes: true },
+        select: {
+          name: true,
+          users: true,
+          messages: true,
+          quizzes: true,
+        },
       });
     // You need to update users here since a user joined
     if (name) reply.send({ success: true, name, users, messages, quizzes });
@@ -176,7 +196,10 @@ fastify.post(
       reply.send({ success: true, id });
     } else {
       reply.status(500);
-      reply.send({ success: false, error: "Unable to create a classroom" });
+      reply.send({
+        success: false,
+        error: "Unable to create a classroom",
+      });
     }
   }
 );
@@ -187,38 +210,53 @@ fastify.get(
   "/api/v1/classrooms",
   {
     schema: {
-      query: {
-        type: "object",
+      headers: {
         properties: {
-          username: { type: "string" },
+          authorization: { type: "string" },
         },
+        required: ["authorization"],
       },
     },
   },
   async (request, reply) => {
-    const { username } = request.query;
+    const id = verifySignedToken(request.headers.authorization);
     const user = await prisma.user.findUnique({
-      where: { username },
-      select: { id: true, classrooms: true, username: true },
+      where: { id },
+      select: {
+        classrooms: {
+          select: {
+            classroomId: true,
+            role: true,
+          },
+        },
+        username: true,
+      },
     });
-    if (user) {
-      reply.status(200);
-      reply.send({
-        success: true,
-        id: user.id,
-        classrooms: user.classrooms,
-        username: user.username,
-      });
-    } else {
-      reply.status(404);
-      reply.send({ success: false, error: "Invalid username!" });
-    }
+    reply.status(200);
+    reply.send({
+      success: true,
+      id: user.id,
+      classrooms: user.classrooms,
+      username: user.username,
+    });
   }
 );
 
 fastify.setErrorHandler(function (error, request, reply) {
+  if (
+    error.name === "JsonWebTokenError" ||
+    error.name === "TokenExpiredError"
+  ) {
+    reply
+      .status(401)
+      .send({ success: false, error: "Bad authorization token" });
+    return;
+  }
+  if (error.validation) {
+    reply.status(400).send({ success: false, error: "Invalid request" });
+    return;
+  }
   fastify.log.error(error);
-  console.error(error);
   reply.status(500).send({ error: "an error occured" });
 });
 
