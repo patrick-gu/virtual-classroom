@@ -1,0 +1,83 @@
+html,
+#root {
+  width: 100%;
+}
+.signupContainer {
+  font-size: 1rem;
+}
+.heading {
+  font-size: 2rem;
+}
+body {
+  background: #ffefba; /* fallback for old browsers */
+  background: -webkit-linear-gradient(
+    to right,
+    #ffffff,
+    #ffefba
+  ); /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(
+    to right,
+    #ffffff,
+    #ffefba
+  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+  display: flex;
+  align-items: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: #f5f5f5;
+}
+
+.form-signin {
+  padding: 15px;
+  margin: auto;
+  border: 2px solid black;
+  width: 35%;
+  font-family: "Montserrat", sans-serif;
+  text-align: center;
+}
+
+.form-signin .checkbox {
+  font-weight: 400;
+}
+
+.form-signin .form-floating:focus-within {
+  z-index: 2;
+}
+
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.icon {
+  height: 30px;
+}
+
+@media only screen and (max-width: 750px) {
+  .form-signin {
+    width: 50%;
+  }
+}
+@media only screen and (max-width: 620px) {
+  .form-signin {
+    width: 60%;
+  }
+}
+@media only screen and (max-width: 483px) {
+  .form-signin {
+    width: 70%;
+  }
+}
+@media only screen and (max-width: 385px) {
+    .form-signin {
+      width: 90%;
+      border: none;
+    }
+  }
