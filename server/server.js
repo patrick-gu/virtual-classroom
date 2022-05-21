@@ -138,6 +138,12 @@ fastify.post(
   "/api/v1/classrooms/join",
   {
     schema: {
+      headers: {
+        properties: {
+          authorization: { type: "string" },
+        },
+        required: ["authorization"],
+      },
       body: {
         type: "object",
         properties: {
@@ -147,23 +153,32 @@ fastify.post(
     },
   },
   async (request, reply) => {
+    const userId = verifySignedToken(request.headers.authorization);
     const { code } = request.body;
-    const { name, users, messages, quizzes } =
-      await prisma.classroom.findUnique({
-        where: { name: code },
-        select: {
-          name: true,
-          users: true,
-          messages: true,
-          quizzes: true,
-        },
-      });
-    // You need to update users here since a user joined
-    if (name) reply.send({ success: true, name, users, messages, quizzes });
-    else {
-      reply.status(401);
-      reply.send({ success: false });
-    }
+    const {
+      id: classroomId,
+      name: classroomName,
+      users,
+      quizzes,
+      messages,
+    } = await prisma.classroom.findUnique({
+      where: { name: code },
+      select: { id: true, users: true, messages: true, quizzes: true },
+    });
+    await prisma.userInClassroom.create({
+      data: {
+        userId,
+        classroomId,
+      },
+    });
+
+    reply.send({
+      success: true,
+      classroomName,
+      users,
+      messages,
+      quizzes,
+    });
   }
 );
 
@@ -173,6 +188,12 @@ fastify.post(
   "/api/v1/classrooms/create",
   {
     schema: {
+      headers: {
+        properties: {
+          authorization: { type: "string" },
+        },
+        required: ["authorization"],
+      },
       body: {
         type: "object",
         properties: {
@@ -182,8 +203,9 @@ fastify.post(
     },
   },
   async (request, reply) => {
+    const userId = verifySignedToken(request.headers.authorization);
     const { code } = request.body;
-    const { id } = await prisma.classroom.create({
+    const { id: classroomId } = await prisma.classroom.create({
       data: {
         name: code,
       },
@@ -191,9 +213,12 @@ fastify.post(
         id: true,
       },
     });
-    if (id) {
+    await prisma.userInClassroom.create({
+      data: { userId, classroomId, role: "Teacher" },
+    });
+    if (classroomId) {
       reply.status(201);
-      reply.send({ success: true, id });
+      reply.send({ success: true, id: classroomId });
     } else {
       reply.status(500);
       reply.send({
