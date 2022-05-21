@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Users
+model User {
+  id           String            @id @default(uuid()) @db.Uuid
+  role         Role
+  classrooms   UserInClassroom[]
+  Message      Message[]
+  QuizResponse QuizResponse[]
+}
+
+// Roles. A user in a classroom is either a student or a teacher. In addition, a user can be
+// a student or teacher overall, which helps to control suggested actions.
+enum Role {
+  Student
+  Teacher
+}
+
+model Classroom {
+  id       String            @id @default(uuid()) @db.Uuid
+  users    UserInClassroom[]
+  messages Message[]
+  quizzes  Quiz[]
+}
+
+model UserInClassroom {
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String    @db.Uuid
+  classroom   Classroom @relation(fields: [classroomId], references: [id])
+  classroomId String    @db.Uuid
+  role        Role
+
+  @@unique([userId, classroomId])
+  @@map("StudentInClassroom")
+}
+
+model Message {
+  id          String     @id @default(uuid()) @db.Uuid
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String     @db.Uuid
+  text        String
+  Classroom   Classroom? @relation(fields: [classroomId], references: [id])
+  classroomId String?    @db.Uuid
+}
+
+model Quiz {
+  id           String         @id @default(uuid()) @db.Uuid
+  classroom    Classroom      @relation(fields: [classroomId], references: [id])
+  classroomId  String         @db.Uuid
+  questions    Question[]
+  QuizResponse QuizResponse[]
+}
+
+model Question {
+  id      String           @id @default(uuid()) @db.Uuid
+  quiz    Quiz             @relation(fields: [quizId], references: [id])
+  quizId  String           @db.Uuid
+  text    String
+  choices QuestionChoice[]
+}
+
+model QuestionChoice {
+  id             String        @id @default(uuid()) @db.Uuid
+  question       Question      @relation(fields: [questionId], references: [id])
+  questionId     String        @db.Uuid
+  text           String
+  correct        Boolean
+  QuizResponse   QuizResponse? @relation(fields: [quizResponseId], references: [id])
+  quizResponseId String?       @db.Uuid
+}
+
+model QuizResponse {
+  id      String           @id @default(uuid()) @db.Uuid
+  user    User             @relation(fields: [userId], references: [id])
+  userId  String           @db.Uuid
+  quiz    Quiz             @relation(fields: [quizId], references: [id])
+  quizId  String           @db.Uuid
+  choices QuestionChoice[]
+}
