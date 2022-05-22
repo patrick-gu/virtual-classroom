@@ -5,6 +5,7 @@ const { PrismaClient } = require("@prisma/client");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const EventEmitter = require("events");
+const crypto = require("crypto");
 
 dotenv.config();
 // dotenv is required to read data from .env file
@@ -154,56 +155,6 @@ fastify.post(
   }
 );
 
-// User joining the classroom(using name of classroom as code)
-
-fastify.post(
-  "/api/v1/classrooms/join",
-  {
-    schema: {
-      headers: {
-        properties: {
-          authorization: { type: "string" },
-        },
-        required: ["authorization"],
-      },
-      body: {
-        type: "object",
-        properties: {
-          code: { type: "string" },
-        },
-      },
-    },
-  },
-  async (req, reply) => {
-    const userId = verifySignedToken(req.headers.authorization);
-    const { code } = req.body;
-    const {
-      id: classroomId,
-      name: classroomName,
-      users,
-      quizzes,
-      messages,
-    } = await prisma.classroom.findUnique({
-      where: { name: code },
-      select: { id: true, users: true, messages: true, quizzes: true },
-    });
-    await prisma.userInClassroom.create({
-      data: {
-        userId,
-        classroomId,
-      },
-    });
-
-    reply.send({
-      success: true,
-      classroomName,
-      users,
-      messages,
-      quizzes,
-    });
-  }
-);
-
 // Creating a classroom
 
 fastify.post(
@@ -220,9 +171,16 @@ fastify.post(
   },
   async (req, reply) => {
     const userId = verifySignedToken(req.headers.authorization);
+    let code = "";
+    const chars = "abcdefghijklmnopqrstuvwxyz".split("");
+    for (let i = 0; i < 8; i++) {
+      code += chars[crypto.randomInt(0, chars.length)];
+    }
     const { id: classroomId, name } = await prisma.classroom.create({
       data: {
         name: "Unnamed Classroom",
+        code,
+        open: true,
       },
       select: {
         id: true,
@@ -234,7 +192,7 @@ fastify.post(
     });
     if (classroomId) {
       reply.status(201);
-      reply.send({ success: true, id: classroomId, name });
+      reply.send({ success: true, id: classroomId, name, code });
     } else {
       reply.status(500);
       reply.send({
@@ -288,6 +246,133 @@ fastify.get(
         name: classroom.name,
       })),
       username: user.username,
+    });
+  }
+);
+
+fastify.get(
+  "/api/v1/classrooms/:id",
+  {
+    schema: {
+      params: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+        },
+      },
+      headers: {
+        properties: {
+          authorization: { type: "string" },
+        },
+        required: ["authorization"],
+      },
+    },
+  },
+  async (req, reply) => {
+    const userId = verifySignedToken(req.headers.authorization);
+    const classroomId = req.params.id;
+    if (!isUuid(classroomId)) {
+      reply.status(400).send({ error: "Invalid classroom ID" });
+      return;
+    }
+    const userInClassroom = await prisma.userInClassroom.findUnique({
+      select: {
+        role: true,
+        classroom: {
+          select: {
+            name: true,
+            code: true,
+            open: true,
+          },
+        },
+      },
+      where: {
+        userId_classroomId: {
+          userId,
+          classroomId,
+        },
+      },
+    });
+    if (!userInClassroom) {
+      reply.status(404).send({ error: "Not in classroom" });
+      return;
+    }
+    if (userInClassroom.role === "Teacher") {
+      reply.send({
+        name: userInClassroom.classroom.name,
+        role: "teacher",
+        code: userInClassroom.classroom.code,
+        open: userInClassroom.classroom.open,
+      });
+    } else {
+      reply.send({
+        name: userInClassroom.classroom.name,
+        role: "student",
+      });
+    }
+  }
+);
+
+// User joining the classroom(using name of classroom as code)
+
+fastify.post(
+  "/api/v1/classrooms/join",
+  {
+    schema: {
+      headers: {
+        properties: {
+          authorization: { type: "string" },
+        },
+        required: ["authorization"],
+      },
+      body: {
+        type: "object",
+        properties: {
+          code: { type: "string" },
+        },
+      },
+    },
+  },
+  async (req, reply) => {
+    const userId = verifySignedToken(req.headers.authorization);
+    const { code } = req.body;
+    const classroom = await prisma.classroom.findUnique({
+      where: { code },
+      select: { id: true, name: true, open: true },
+    });
+    if (!classroom) {
+      reply
+        .status(404)
+        .send({ success: false, error: "That classroom was not found" });
+      return;
+    }
+    const { id: classroomId, name: classroomName, open } = classroom;
+    const exists = await prisma.userInClassroom.count({
+      where: { userId, classroomId },
+    });
+    if (exists) {
+      reply
+        .status(409)
+        .send({ success: false, error: "Already in that classroom" });
+    }
+    if (!open) {
+      reply
+        .status(403)
+        .send({ success: false, error: "That classroom is not open" });
+      return;
+    }
+    await prisma.userInClassroom.create({
+      data: {
+        userId,
+        classroomId,
+        role: "Student",
+      },
+    });
+
+    reply.send({
+      success: true,
+      classroomId,
+      classroomName,
     });
   }
 );

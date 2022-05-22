@@ -15,6 +15,8 @@ CREATE TABLE "User" (
 CREATE TABLE "Classroom" (
     "id" UUID NOT NULL,
     "name" STRING NOT NULL,
+    "code" STRING NOT NULL,
+    "open" BOOL NOT NULL,
 
     CONSTRAINT "Classroom_pkey" PRIMARY KEY ("id")
 );
@@ -32,6 +34,7 @@ CREATE TABLE "Message" (
     "userId" UUID NOT NULL,
     "text" STRING NOT NULL,
     "classroomId" UUID,
+    "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Message_pkey" PRIMARY KEY ("id")
 );
