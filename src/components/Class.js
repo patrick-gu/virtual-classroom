@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuthenticated } from "../utils/auth";
+import { apiRequest } from "../utils/request";
 
 export default function Class() {
   const [token, setToken] = useAuthenticated();
   const { classId } = useParams();
   const socket = useRef();
   const [messages, setMessages] = useState([]);
+  const [users, setUsers] = useState({});
   useEffect(() => {
     if (socket.current !== undefined) return;
     socket.current = null;
@@ -30,6 +32,15 @@ export default function Class() {
         case "messages":
           setMessages((messages) => [...message.messages, ...messages]);
           break;
+        case "users":
+          setUsers((users) => {
+            users = { ...users };
+            for (const { username, id, role } of message.users) {
+              users[id] = { username, role };
+            }
+            return users;
+          });
+          break;
         default:
       }
     };
@@ -38,6 +49,24 @@ export default function Class() {
       socket.current?.close();
     };
   });
+
+  const [classInfo, setClassInfo] = useState({
+    name: "Loading...",
+  });
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    (async () => {
+      const newClassInfo = await apiRequest({
+        method: "GET",
+        path: `/classrooms/${classId}`,
+        token,
+        setToken,
+        navigate,
+      });
+      setClassInfo(newClassInfo);
+    })();
+  }, [classId, setClassInfo, token, setToken, navigate]);
 
   const quizzes = [
     {
@@ -58,7 +87,14 @@ export default function Class() {
     <div>
       <div>
         <Link to="/classes">Back to all classes</Link>
-        <h1>Class name goes here</h1>
+        <h1>{classInfo.name}</h1>
+        {classInfo.open !== undefined && (
+          <p>
+            {classInfo.open
+              ? `The classroom code is: ${classInfo.code}`
+              : "This class is currently closed."}
+          </p>
+        )}
         <p>Class id: {classId}</p>
       </div>
 
@@ -87,6 +123,10 @@ export default function Class() {
           {messages.map((message) => (
             <div key={message.id}>
               <p>{message.text}</p>
+              <p>
+                <i>{users[message.userId]?.username ?? "Unknown"}</i> -{" "}
+                {users[message.userId]?.role ?? "Unknown"}
+              </p>
               <small>
                 <time dateTime={message.timestamp}>{message.timestamp}</time>
               </small>

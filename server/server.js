@@ -299,6 +299,7 @@ fastify.get(
     }
     if (userInClassroom.role === "Teacher") {
       reply.send({
+        success: true,
         name: userInClassroom.classroom.name,
         role: "teacher",
         code: userInClassroom.classroom.code,
@@ -306,8 +307,72 @@ fastify.get(
       });
     } else {
       reply.send({
+        success: true,
         name: userInClassroom.classroom.name,
         role: "student",
+      });
+    }
+  }
+);
+
+fastify.post(
+  "/api/v1/classrooms/:id",
+  {
+    schema: {
+      params: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+        },
+      },
+      headers: {
+        properties: {
+          authorization: { type: "string" },
+        },
+        required: ["authorization"],
+      },
+      body: {
+        properties: {
+          name: { type: "string" },
+        },
+      },
+    },
+  },
+  async (req, reply) => {
+    const userId = verifySignedToken(req.headers.authorization);
+    const classroomId = req.params.id;
+    if (!isUuid(classroomId)) {
+      reply.status(400).send({ error: "Invalid classroom ID" });
+      return;
+    }
+    const name = req.body.name;
+    const userInClassroom = await prisma.userInClassroom.findUnique({
+      select: {
+        role: true,
+      },
+      where: {
+        userId_classroomId: {
+          userId,
+          classroomId,
+        },
+      },
+    });
+    if (!userInClassroom) {
+      reply.status(404).send({ error: "Not in classroom" });
+      return;
+    }
+    if (userInClassroom.role === "Teacher") {
+      await prisma.classroom.update({
+        where: { id: classroomId },
+        data: { name },
+      });
+      reply.send({
+        success: true,
+      });
+    } else {
+      reply.status(403).send({
+        success: false,
+        error: "You can't change the name of the classroom.",
       });
     }
   }
@@ -368,11 +433,22 @@ fastify.post(
         role: "Student",
       },
     });
+    const { username } = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { username: true },
+    });
+    chat.emit(
+      classroomId,
+      JSON.stringify({
+        kind: "users",
+        users: [{ role: "Student", username, id: userId }],
+      })
+    );
 
     reply.send({
       success: true,
-      classroomId,
-      classroomName,
+      id: classroomId,
+      name: classroomName,
     });
   }
 );
@@ -562,6 +638,26 @@ fastify.register(async function (fastify) {
         JSON.stringify({
           kind: "messages",
           messages,
+        })
+      );
+
+      const users = await prisma.userInClassroom.findMany({
+        where: { classroomId },
+        select: {
+          role: true,
+          user: { select: { username: true } },
+          userId: true,
+        },
+      });
+
+      connection.socket.send(
+        JSON.stringify({
+          kind: "users",
+          users: users.map(({ role, user: { username }, userId }) => ({
+            role,
+            username,
+            id: userId,
+          })),
         })
       );
     }

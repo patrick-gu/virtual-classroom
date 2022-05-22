@@ -32,6 +32,24 @@ export default function Classes() {
       { id, role: "Teacher", name },
     ]);
   };
+  const [classCode, setClassCode] = useState("");
+  const joinClass = async (e) => {
+    e.preventDefault();
+    const { id, name } = await apiRequest({
+      method: "POST",
+      path: "/classrooms/join",
+      token,
+      setToken,
+      body: {
+        code: classCode,
+      },
+      navigate,
+    });
+    setClassrooms((classrooms) => [
+      ...classrooms,
+      { id, name, role: "Student" },
+    ]);
+  };
   return (
     <div className="container">
       <Link to="/profile">Profile</Link>
@@ -39,16 +57,29 @@ export default function Classes() {
       <div>
         {classrooms ? (
           classrooms.map(({ id, role, name }) => (
-            <Link to={`/classes/${id}`} className="d-block" key={id}>
-              <h2>{name}</h2>
-              <p></p>
-            </Link>
+            <div key={id}>
+              <Link to={`/classes/${id}`} className="d-block">
+                <h2>{name}</h2>
+              </Link>
+              <p>You are a {role}</p>
+            </div>
           ))
         ) : (
           <p>Loading...</p>
         )}
       </div>
-      <button onClick={createClass}>Create a new class</button>
+      <button onClick={createClass}>Create a new classroom</button>
+      <div>
+        <h2>Join a classroom</h2>
+        <form onSubmit={joinClass}>
+          <input
+            type="text"
+            placeholder="Class Code"
+            onChange={(e) => setClassCode(e.target.value)}
+          />
+          <input type="submit" value="Join" />
+        </form>
+      </div>
     </div>
   );
 }
