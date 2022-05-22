@@ -25,7 +25,7 @@ const Signup = () => {
     const { success, error, token } = await response.json();
     if (success) {
       setToken(token);
-      navigate("/classes");
+      navigate("/classrooms");
     } else {
       alert(error);
     }
@@ -136,7 +136,7 @@ const Signup = () => {
           </ul>
         </div>
         <button className="w-100 btn btn-lg btn-primary" type="submit">
-          <img className="icon" src="lock.svg" alt="" /> Sign up
+        <i class="fa-solid fa-lock"></i>  Sign up
         </button>
         <p className="mt-5 mb-3 text-muted">&copy; 2022</p>
       </form>

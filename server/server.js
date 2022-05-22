@@ -177,7 +177,7 @@ fastify.post(
   },
   async (request, reply) => {
     const { classroomName } = request.body;
-    
+
     const userId = verifySignedToken(request.headers.authorization);
     let code = "";
     const chars = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -242,6 +242,7 @@ fastify.get(
           },
         },
         username: true,
+        role: true,
       },
     });
     reply.status(200);
@@ -254,6 +255,8 @@ fastify.get(
         name: classroom.name,
       })),
       username: user.username,
+      email: user.email,
+      role: user.role,
     });
   }
 );
@@ -279,6 +282,7 @@ fastify.get(
   async (req, reply) => {
     const userId = verifySignedToken(req.headers.authorization);
     const classroomId = req.params.id;
+    console.log('------------------', classroomId);
     if (!isUuid(classroomId)) {
       reply.status(400).send({ error: "Invalid classroom ID" });
       return;
@@ -336,16 +340,17 @@ fastify.post(
       body: {
         type: "object",
         properties: {
-          code: { type: "string" },
+          id: { type: "string" },
         },
       },
     },
   },
   async (req, reply) => {
     const userId = verifySignedToken(req.headers.authorization);
-    const { code } = req.body;
+    const { id } = req.body;
+
     const classroom = await prisma.classroom.findUnique({
-      where: { code },
+      where: { id },
       select: { id: true, name: true, open: true },
     });
     if (!classroom) {
@@ -421,7 +426,7 @@ fastify.post(
       body: {
         type: "object",
         properties: {
-          username: { type: "string" },
+          name: { type: "string" },
           classroomName: { type: "string" },
           questions: { type: "array" },
         },
@@ -429,7 +434,7 @@ fastify.post(
     },
   },
   async (req, reply) => {
-    const { username, classroomName, questions } = req.body;
+    const { name, classroomName, questions } = req.body;
     const user = await getUserByUsername(username);
     if (user.role === "Teacher") {
       const classroom = await getClassByName(classroomName);

@@ -1,0 +1,60 @@
+#title {
+    background-image: url('https://img.freepik.com/free-vector/mathematics-education-blue-background-vector-disruptive-education-digital-remix_53876-114096.jpg?t=st=1653186654~exp=1653187254~hmac=1b7bea78539b5f34ef56af71f734148e0791aa13abbd104421a671e9776bddd5&w=740');
+    min-height: 95vh;
+  color: #fff;
+}
+.header {
+  padding: 3% 15% 7%;
+
+}
+.row{
+    justify-content: center;
+    text-align: center;
+}
+h1 {
+  font-family: "Ubuntu", sans-serif;
+  font-size: 3.5rem;
+  line-height: 1.5;
+}
+h2 {
+  font-family: "Ubuntu", sans-serif;
+}
+h3 {
+  font-family: "Montserrat", sans-serif;
+  font-size: 1.5rem;
+}
+.logo {
+  width: 20px;
+}
+.title-img {
+  width: 21%;
+  transform: rotate(25deg);
+  position: absolute;
+  right: 22%;
+  /* margin-top: 10%; */
+}
+
+#features {
+  padding: 7% 15%;
+  text-align: center;
+  background-color: #fff;
+  position: relative;
+}
+.feature-icon {
+  font-size: 4.5rem;
+  color: #ef8172;
+  padding: 1rem;
+}
+.feature-icon:hover {
+  color: #ff4c68;
+}
+i{
+    margin: 0 5px 0 0;
+}
+.download-btn{
+    margin: 5% 3% 0 0;
+  }
+  .download-btn:hover{
+      background-color: white;
+      color: black;
+  }

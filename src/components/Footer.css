@@ -1,0 +1,13 @@
+
+  #footer{
+    text-align: center;
+    padding: 7% 15%;
+  }
+  .social{
+    margin: 10px;
+    color: black;
+    text-decoration: none;
+  }
+  .social:hover{
+    color: green;
+  }

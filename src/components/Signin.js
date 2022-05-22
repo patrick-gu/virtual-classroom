@@ -23,7 +23,7 @@ const Signin = () => {
     const { success, error, token } = await response.json();
     if (success) {
       setToken(token);
-      navigate("/classes");
+      navigate("/classrooms");
     } else {
       alert(error);
     }
@@ -59,7 +59,7 @@ const Signin = () => {
           <label for="password">Password</label>
         </div>
         <button className="w-100 btn btn-lg btn-primary" type="submit">
-          <img className="icon" src="lock.svg" alt="" /> Sign in
+        <i class="fa-solid fa-lock"></i>  Sign in
         </button>
         <p className="mt-5 mb-3 text-muted">&copy; 2022</p>
       </form>

@@ -1,0 +1,39 @@
+.chat{
+    width: 100%;
+    margin: 0;
+    text-align: center;
+    height: 90vh;
+    overflow-x: scroll;
+    background-image: url('https://i.pinimg.com/originals/40/39/e0/4039e0f1ef08b7b965bacb4641a7af49.jpg');
+    
+}
+.chat__body{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-right: 10px;
+}
+
+.chat__timestamp{
+    margin-left: 10px;
+    font-size: xx-small;
+}
+.hidden{
+    display: none;
+}
+.message_footer{
+    position: static;
+    bottom: 0%;
+}
+.message_text{
+    position: relative;
+    font-size: 16px;
+    padding: 10px;
+    width: fit-content;
+    border-radius: 10px;
+    background-color: #ffffff;
+    margin-bottom: 30px;
+}
+.message_text p, .message_text small{
+    margin: 0;
+}

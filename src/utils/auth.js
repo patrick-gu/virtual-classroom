@@ -25,7 +25,7 @@ export function useUnauthenticated() {
   const navigate = useNavigate();
   useEffect(() => {
     if (token) {
-      navigate("/classes");
+      navigate("/classrooms");
     }
   }, [token, navigate]);
   return setToken;

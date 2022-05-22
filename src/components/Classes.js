@@ -22,14 +22,14 @@ export default function Classes() {
   }, [navigate, setToken, token]);
   
   return (
-    <div className="container">
-      <h1>Your classes</h1>
+    <div className="container text-center">
+      <h1 className="mt-3 mb-4">Your classes</h1>
       <div>
         {classrooms ? (
           classrooms.map(({ id, role, name }) => (
-            <Link to={`/classes/${id}`} className="d-block" key={id}>
-              <h2>{name}</h2>
-              <p></p>
+            <Link  to={`/classrooms/${id}`} className="card d-block" key={id}>
+              <h4 className="card-body">{name}</h4>
+              <p>ID: {id}</p>
             </Link>
           ))
         ) : (
