@@ -14,8 +14,7 @@ export default function Class() {
     socket.current = null;
     const url = new URL(
       `/api/v1/classrooms/${classId}/chat`,
-      "http://localhost:8080"
-      //   window.location.href
+      process.env.NODE_ENV === "production" ? "/" : "http://localhost:8080"
     );
     url.protocol = url.protocol.replace("http", "ws");
     const newSocket = new WebSocket(url);

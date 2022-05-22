@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const EventEmitter = require("events");
 const crypto = require("crypto");
+const path = require("path");
 
 dotenv.config();
 // dotenv is required to read data from .env file
@@ -43,11 +44,6 @@ const verifySignedToken = function (token) {
 
 const fastify = Fastify({
   logger: true,
-});
-
-fastify.get("/", async (req, reply) => {
-  reply.send({ hello: "world" });
-  console.log("reached");
 });
 
 fastify.post(
@@ -199,7 +195,7 @@ fastify.post(
   },
   async (request, reply) => {
     const { classroomName } = request.body;
-    
+
     const userId = verifySignedToken(request.headers.authorization);
     let code = "";
     const chars = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -693,6 +689,12 @@ fastify.register(async function (fastify) {
     }
   );
 });
+
+if (process.env.NODE_ENV === "production") {
+  fastify.register(require("@fastify/static"), {
+    root: path.join(__dirname, "../build"),
+  });
+}
 
 const start = async () => {
   try {

@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "@fastify/static": "^5.0.2",
         "@fastify/websocket": "^5.0.0",
         "@prisma/client": "^3.14.0",
         "@testing-library/jest-dom": "^5.16.4",
