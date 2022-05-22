@@ -187,12 +187,20 @@ fastify.post(
         properties: {
           authorization: { type: "string" },
         },
-        required: ["authorization"],
       },
+      body: {
+        type: "object",
+        properties: {
+          className: { type: "string" },
+        },
+      },
+      required: ["authorization"],
     },
   },
-  async (req, reply) => {
-    const userId = verifySignedToken(req.headers.authorization);
+  async (request, reply) => {
+    const { classroomName } = request.body;
+    
+    const userId = verifySignedToken(request.headers.authorization);
     let code = "";
     const chars = "abcdefghijklmnopqrstuvwxyz".split("");
     for (let i = 0; i < 8; i++) {
@@ -200,7 +208,7 @@ fastify.post(
     }
     const { id: classroomId, name } = await prisma.classroom.create({
       data: {
-        name: "Unnamed Classroom",
+        name: classroomName,
         code,
         open: true,
       },

@@ -16,6 +16,7 @@ const Create = () => {
       token,
       setToken,
       navigate,
+      body: { classroomName },
     });
     if (id) {
       navigate("/classrooms");
@@ -34,7 +35,7 @@ const Create = () => {
             type="text"
             className="form-control"
             id="name"
-            name="name"
+            name="className"
             required
             onChange={(e) => setClassroomName(e.target.value)}
           />
