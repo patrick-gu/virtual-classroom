@@ -33,10 +33,13 @@ export default function Classes() {
       },
       navigate,
     });
-    setClassrooms((classrooms) => [
-      ...classrooms,
-      { id, name, role: "Student" },
-    ]);
+    if (id) {
+      navigate(`/classrooms/${id}`);
+      setClassrooms((classrooms) => [
+        ...classrooms,
+        { id, name, role: "Student" },
+      ]);
+    }
   };
   return (
     <div className="container text-center">
@@ -64,7 +67,7 @@ export default function Classes() {
             placeholder="Class Code"
             onChange={(e) => setClassCode(e.target.value)}
           />
-          <input className="mt-3 btn btn-primary" type="submit"  value="Join" />
+          <input className="mt-3 btn btn-primary" type="submit" value="Join" />
         </form>
       </div>
     </div>

@@ -423,17 +423,17 @@ fastify.post(
       body: {
         type: "object",
         properties: {
-          id: { type: "string" },
+          code: { type: "string" },
         },
       },
     },
   },
   async (req, reply) => {
     const userId = verifySignedToken(req.headers.authorization);
-    const { id } = req.body;
+    const { code } = req.body;
 
     const classroom = await prisma.classroom.findUnique({
-      where: { id },
+      where: { code },
       select: { id: true, name: true, open: true },
     });
     if (!classroom) {
