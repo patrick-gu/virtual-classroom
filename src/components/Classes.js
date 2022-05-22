@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthenticated } from "../utils/auth";
 import { apiRequest } from "../utils/request";
-import './Classes.css';
+import "./Classes.css";
 
 export default function Classes() {
   const [token, setToken] = useAuthenticated();
