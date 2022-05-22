@@ -143,8 +143,13 @@ export default function Class() {
 
         <div className="chat__body ">
           {messages.map((message) => (
-            <div className={`message_text ${userId === message.userId ? "" : "message__reciever"}`}key={message.id}>
-              <p >{message.text}</p>
+            <div
+              className={`message_text ${
+                userId === message.userId ? "" : "chat__reciever"
+              }`}
+              key={message.id}
+            >
+              <p>{message.text}</p>
               <p>
                 <strong>
                   {users[message.userId]?.username ?? "Unknown"} -{" "}
