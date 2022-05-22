@@ -27,6 +27,7 @@ export default function Class() {
   const socket = useRef();
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState({});
+  const [userId, setUserId] = useState(null);
   useEffect(() => {
     if (socket.current !== undefined) return;
     socket.current = null;
@@ -57,6 +58,9 @@ export default function Class() {
             }
             return users;
           });
+          break;
+        case "userId":
+          setUserId(message.userId);
           break;
         default:
       }
@@ -121,7 +125,7 @@ export default function Class() {
     <>
       <div className="container">
         <div>
-          <h2>{classroom}</h2>
+          <h1>{classInfo.name}</h1>
           <p>Class id: {classId}</p>
         </div>
       </div>

@@ -300,7 +300,7 @@ fastify.get(
   async (req, reply) => {
     const userId = verifySignedToken(req.headers.authorization);
     const classroomId = req.params.id;
-    console.log('------------------', classroomId);
+    console.log("------------------", classroomId);
     if (!isUuid(classroomId)) {
       reply.status(400).send({ error: "Invalid classroom ID" });
       return;
@@ -620,6 +620,8 @@ fastify.register(async function (fastify) {
       if (!isInClassroom) {
         return;
       }
+
+      connection.socket.send(JSON.stringify({ kind: "userId", userId }));
 
       connection.socket.on("message", async (text) => {
         text = text.toString();
