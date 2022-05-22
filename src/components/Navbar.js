@@ -16,10 +16,18 @@ const Navbar = () => {
         <Link className="navbar-brand" to="/">
           Virtuo
         </Link>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <i class="fa-solid fa-bars"></i>
-    </button>
-          
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           {token ? (
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
@@ -55,14 +63,7 @@ const Navbar = () => {
                       Join Classroom
                     </Link>
                   </li>
-                  <li>
-                    <hr className="dropdown-divider" />
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="/quiz/create">
-                      Create Quiz
-                    </Link>
-                  </li>
+                  
                 </ul>
               </li>
             </ul>

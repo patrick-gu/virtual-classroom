@@ -60,10 +60,11 @@ export default function Classes() {
         <form onSubmit={joinClass}>
           <input
             type="text"
+            className="form-control mt-3"
             placeholder="Class Code"
             onChange={(e) => setClassCode(e.target.value)}
           />
-          <input type="submit" value="Join" />
+          <input className="mt-3 btn btn-primary" type="submit"  value="Join" />
         </form>
       </div>
     </div>
