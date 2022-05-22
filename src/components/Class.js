@@ -103,6 +103,7 @@ export default function Class() {
   const sendMessage = (e) => {
     e.preventDefault();
     socket.current.send(message);
+    e.target.reset();
   };
 
   const [name, setName] = useState("");
