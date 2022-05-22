@@ -35,12 +35,11 @@ function App() {
                 lName="Dangi"
                 role="Teacher"
                 email="arpitt682@gmail.com"
-               
               />
             }
           />
           <Route exact path="/classes" element={<Classes />} />
-          <Route exact path="/classes/classId" element={<Class />} />
+          <Route exact path="/classes/:classId" element={<Class />} />
           {/* We can pass values by fetching from database */}
         </Routes>
       </Router>
