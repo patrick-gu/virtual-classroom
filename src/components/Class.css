@@ -42,3 +42,10 @@
     background-color: #dcf8c6;
     margin-left: 10px;
 }
+.chat__name{
+    color: white;
+    position: absolute;
+    top: -15px;
+    font-size: xx-small;
+    font-weight: 800;
+}
