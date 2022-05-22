@@ -23,7 +23,7 @@ const Signin = () => {
     const { success, error, token } = await response.json();
     if (success) {
       setToken(token);
-      navigate("/profile");
+      navigate("/classes");
     } else {
       alert(error);
     }

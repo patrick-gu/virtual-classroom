@@ -4,6 +4,8 @@ CREATE TYPE "Role" AS ENUM ('Student', 'Teacher');
 -- CreateTable
 CREATE TABLE "User" (
     "id" UUID NOT NULL,
+    "username" STRING NOT NULL,
+    "password_hash" STRING NOT NULL,
     "role" "Role" NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
@@ -12,6 +14,7 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Classroom" (
     "id" UUID NOT NULL,
+    "name" STRING NOT NULL,
 
     CONSTRAINT "Classroom_pkey" PRIMARY KEY ("id")
 );
@@ -56,7 +59,6 @@ CREATE TABLE "QuestionChoice" (
     "questionId" UUID NOT NULL,
     "text" STRING NOT NULL,
     "correct" BOOL NOT NULL,
-    "quizResponseId" UUID,
 
     CONSTRAINT "QuestionChoice_pkey" PRIMARY KEY ("id")
 );
@@ -70,8 +72,23 @@ CREATE TABLE "QuizResponse" (
     CONSTRAINT "QuizResponse_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "_QuestionChoiceToQuizResponse" (
+    "A" UUID NOT NULL,
+    "B" UUID NOT NULL
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
+
 -- CreateIndex
 CREATE UNIQUE INDEX "StudentInClassroom_userId_classroomId_key" ON "StudentInClassroom"("userId", "classroomId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_QuestionChoiceToQuizResponse_AB_unique" ON "_QuestionChoiceToQuizResponse"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_QuestionChoiceToQuizResponse_B_index" ON "_QuestionChoiceToQuizResponse"("B");
 
 -- AddForeignKey
 ALTER TABLE "StudentInClassroom" ADD CONSTRAINT "StudentInClassroom_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -95,10 +112,13 @@ ALTER TABLE "Question" ADD CONSTRAINT "Question_quizId_fkey" FOREIGN KEY ("quizI
 ALTER TABLE "QuestionChoice" ADD CONSTRAINT "QuestionChoice_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "Question"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "QuestionChoice" ADD CONSTRAINT "QuestionChoice_quizResponseId_fkey" FOREIGN KEY ("quizResponseId") REFERENCES "QuizResponse"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "QuizResponse" ADD CONSTRAINT "QuizResponse_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "QuizResponse" ADD CONSTRAINT "QuizResponse_quizId_fkey" FOREIGN KEY ("quizId") REFERENCES "Quiz"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_QuestionChoiceToQuizResponse" ADD CONSTRAINT "_QuestionChoiceToQuizResponse_A_fkey" FOREIGN KEY ("A") REFERENCES "QuestionChoice"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_QuestionChoiceToQuizResponse" ADD CONSTRAINT "_QuestionChoiceToQuizResponse_B_fkey" FOREIGN KEY ("B") REFERENCES "QuizResponse"("id") ON DELETE CASCADE ON UPDATE CASCADE;

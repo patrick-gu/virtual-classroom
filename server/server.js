@@ -1,8 +1,10 @@
 const Fastify = require("fastify");
+const fastifyWebsocket = require("@fastify/websocket");
 const bcrypt = require("bcryptjs");
 const { PrismaClient } = require("@prisma/client");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const EventEmitter = require("events");
 
 dotenv.config();
 // dotenv is required to read data from .env file
@@ -42,7 +44,7 @@ const fastify = Fastify({
   logger: true,
 });
 
-fastify.get("/", async (request, reply) => {
+fastify.get("/", async (req, reply) => {
   reply.send({ hello: "world" });
   console.log("reached");
 });
@@ -61,8 +63,8 @@ fastify.post(
       },
     },
   },
-  async (request, reply) => {
-    let { username, password, role } = request.body;
+  async (req, reply) => {
+    let { username, password, role } = req.body;
     if (
       typeof username !== "string" ||
       !/^[a-zA-Z0-9\-_]{3,30}$/.test(username)
@@ -130,8 +132,8 @@ fastify.post(
       },
     },
   },
-  async (request, reply) => {
-    const { username, password } = request.body;
+  async (req, reply) => {
+    const { username, password } = req.body;
     const user = await prisma.user.findUnique({
       where: { username },
       select: { id: true, passwordHash: true },
@@ -172,9 +174,9 @@ fastify.post(
       },
     },
   },
-  async (request, reply) => {
-    const userId = verifySignedToken(request.headers.authorization);
-    const { code } = request.body;
+  async (req, reply) => {
+    const userId = verifySignedToken(req.headers.authorization);
+    const { code } = req.body;
     const {
       id: classroomId,
       name: classroomName,
@@ -214,23 +216,17 @@ fastify.post(
         },
         required: ["authorization"],
       },
-      body: {
-        type: "object",
-        properties: {
-          code: { type: "string" },
-        },
-      },
     },
   },
-  async (request, reply) => {
-    const userId = verifySignedToken(request.headers.authorization);
-    const { code } = request.body;
-    const { id: classroomId } = await prisma.classroom.create({
+  async (req, reply) => {
+    const userId = verifySignedToken(req.headers.authorization);
+    const { id: classroomId, name } = await prisma.classroom.create({
       data: {
-        name: code,
+        name: "Unnamed Classroom",
       },
       select: {
         id: true,
+        name: true,
       },
     });
     await prisma.userInClassroom.create({
@@ -238,7 +234,7 @@ fastify.post(
     });
     if (classroomId) {
       reply.status(201);
-      reply.send({ success: true, id: classroomId });
+      reply.send({ success: true, id: classroomId, name });
     } else {
       reply.status(500);
       reply.send({
@@ -263,12 +259,22 @@ fastify.get(
       },
     },
   },
-  async (request, reply) => {
-    const id = verifySignedToken(request.headers.authorization);
+  async (req, reply) => {
+    const id = verifySignedToken(req.headers.authorization);
     const user = await prisma.user.findUnique({
       where: { id },
       select: {
-        classrooms: true,
+        classrooms: {
+          select: {
+            classroomId: true,
+            role: true,
+            classroom: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
         username: true,
       },
     });
@@ -276,9 +282,10 @@ fastify.get(
     reply.send({
       success: true,
       id: user.id,
-      classrooms: user.classrooms.map(({ role, classroomId }) => ({
+      classrooms: user.classrooms.map(({ role, classroomId, classroom }) => ({
         role,
         id: classroomId,
+        name: classroom.name,
       })),
       username: user.username,
     });
@@ -299,8 +306,8 @@ fastify.get(
       },
     },
   },
-  async (request, reply) => {
-    const { name } = request.query;
+  async (req, reply) => {
+    const { name } = req.query;
     const { quizzes } = await getClassByName(name);
     if (quizzes) {
       reply.status(200);
@@ -328,8 +335,8 @@ fastify.post(
       },
     },
   },
-  async (request, reply) => {
-    const { username, classroomName, questions } = request.body;
+  async (req, reply) => {
+    const { username, classroomName, questions } = req.body;
     const user = await getUserByUsername(username);
     if (user.role === "Teacher") {
       const classroom = await getClassByName(classroomName);
@@ -357,7 +364,7 @@ fastify.post(
   }
 );
 
-fastify.setErrorHandler(function (error, request, reply) {
+fastify.setErrorHandler(function (error, req, reply) {
   if (
     error.name === "JsonWebTokenError" ||
     error.name === "TokenExpiredError"
@@ -368,11 +375,72 @@ fastify.setErrorHandler(function (error, request, reply) {
     return;
   }
   if (error.validation) {
-    reply.status(400).send({ success: false, error: "Invalid request" });
+    reply.status(400).send({ success: false, error: "Invalid req" });
     return;
   }
   fastify.log.error(error);
+  console.error(error);
   reply.status(500).send({ success: false, error: "an error occured" });
+});
+
+function isUuid(s) {
+  return /^[0-9a-f]{8}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{4}\b-[0-9a-f]{12}$/.test(
+    s
+  );
+}
+
+const chat = new EventEmitter();
+
+fastify.register(fastifyWebsocket);
+fastify.register(async function (fastify) {
+  fastify.get(
+    "/api/v1/classrooms/:id/chat",
+    {
+      schema: {
+        params: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+          },
+        },
+      },
+      websocket: true,
+    },
+    async (connection, req) => {
+      const { id: classroomId } = req.params;
+
+      const token = await new Promise((resolve, reject) => {
+        connection.socket.once("message", (message) => {
+          resolve(message.toString());
+        });
+      });
+
+      const userId = verifySignedToken(token);
+      if (!isUuid(classroomId)) {
+        return;
+      }
+      const isInClassroom = await prisma.userInClassroom.count({
+        where: {
+          userId,
+          classroomId,
+        },
+      });
+      if (!isInClassroom) {
+        return;
+      }
+
+      connection.socket.on("message", (message) => {
+        chat.emit(classroomId, message.toString());
+      });
+      const onChatMessage = (message) => {
+        connection.socket.send(message);
+      };
+      chat.on(classroomId, onChatMessage);
+      connection.socket.on("close", () => {
+        chat.off(classroomId, onChatMessage);
+      });
+    }
+  );
 });
 
 const start = async () => {
