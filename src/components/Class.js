@@ -143,7 +143,9 @@ export default function Class() {
                 </strong>
               </p>
               <small className="chat__timestamp">
-                <time dateTime={message.timestamp}>{message.timestamp}</time>
+                <time dateTime={message.timestamp}>
+                  {new Date(message.timestamp).toLocaleString()}
+                </time>
               </small>
             </div>
           ))}
