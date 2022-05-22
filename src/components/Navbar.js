@@ -97,13 +97,9 @@ const Navbar = () => {
                 </Link>
               </>
             ) : (
-              <Link
-                className="btn btn-outline-success ms-3"
-                onClick={logout}
-                to="#"
-              >
+              <button className="btn btn-outline-success ms-3" onClick={logout}>
                 Logout
-              </Link>
+              </button>
             )}
           </div>
         </div>
