@@ -36,21 +36,21 @@ const Navbar = () => {
                 </Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" aria-current="page" to="/classes">
+                <Link className="nav-link" aria-current="page" to="/classrooms">
                   Classes
                 </Link>
               </li>
               <li className="nav-item dropdown">
-                <a
+                <Link
                   className="nav-link dropdown-toggle"
-                  href="#"
+                  to="#"
                   id="navbarDropdown"
                   role="button"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
                   Classroom
-                </a>
+                </Link>
                 <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
                   <li>
                     <Link className="dropdown-item" to="/classrooms/create">
@@ -97,13 +97,13 @@ const Navbar = () => {
                 </Link>
               </>
             ) : (
-              <a
+              <Link
                 className="btn btn-outline-success ms-3"
                 onClick={logout}
-                href="#"
+                to="#"
               >
                 Logout
-              </a>
+              </Link>
             )}
           </div>
         </div>

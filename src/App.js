@@ -15,6 +15,7 @@ import Class from "./components/Class";
 import { AuthContext, useTokenState } from "./utils/auth";
 import Home from "./components/Home";
 import Navbar from "./components/Navbar";
+import Create from "./components/Create";
 
 function App() {
   const [token, setToken] = useTokenState();
@@ -38,8 +39,9 @@ function App() {
               />
             }
           />
-          <Route exact path="/classes" element={<Classes />} />
-          <Route exact path="/classes/:classId" element={<Class />} />
+          <Route exact path="/classrooms" element={<Classes />} />
+          <Route exact path="/classrooms/:classId" element={<Class />} />
+          <Route exact path="/classrooms/create" element={<Create />} />
           {/* We can pass values by fetching from database */}
         </Routes>
       </Router>
