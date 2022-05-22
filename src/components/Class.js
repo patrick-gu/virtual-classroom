@@ -1,30 +1,38 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuthenticated } from "../utils/auth";
 
 export default function Class() {
   const [token, setToken] = useAuthenticated();
   const { classId } = useParams();
-  const [socket, setSocket] = useState(null);
+  const socket = useRef();
   const [messages, setMessages] = useState([]);
   useEffect(() => {
-    if (socket) return;
+    if (socket.current !== undefined) return;
+    socket.current = null;
     const url = new URL(
       `/api/v1/classrooms/${classId}/chat`,
       "http://localhost:8080"
       //   window.location.href
     );
     url.protocol = url.protocol.replace("http", "ws");
-    console.log(url);
     const newSocket = new WebSocket(url);
     newSocket.onopen = () => {
       newSocket.send(token);
-      setSocket(newSocket);
+      socket.current = newSocket;
     };
     newSocket.onmessage = (message) => {
-      setMessages((messages) => [...messages, message.data]);
+      setMessages((messages) => [
+        ...messages,
+        JSON.parse(message.data.toString()),
+      ]);
     };
-  }, [classId, token, socket, setSocket]);
+
+    return () => {
+      socket.current?.close();
+    };
+  });
+
   const quizzes = [
     {
       id: "123",
@@ -38,7 +46,7 @@ export default function Class() {
   const [message, setMessage] = useState("");
   const sendMessage = (e) => {
     e.preventDefault();
-    socket.send(message);
+    socket.current.send(message);
   };
   return (
     <div>
@@ -66,11 +74,16 @@ export default function Class() {
             placeholder="Send a message"
             onChange={(e) => setMessage(e.target.value)}
           />
-          <input type="submit" value="Send" disabled={!socket} />
+          <input type="submit" value="Send" disabled={!socket.current} />
         </form>
         <div>
-          {messages.map((message, key) => (
-            <p key={key}>{message.toString()}</p>
+          {messages.map((message) => (
+            <div key={message.id}>
+              <p>{message.text}</p>
+              <small>
+                <time dateTime={message.timestamp}>{message.timestamp}</time>
+              </small>
+            </div>
           ))}
         </div>
       </div>

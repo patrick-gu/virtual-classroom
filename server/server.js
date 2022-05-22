@@ -429,8 +429,21 @@ fastify.register(async function (fastify) {
         return;
       }
 
-      connection.socket.on("message", (message) => {
-        chat.emit(classroomId, message.toString());
+      connection.socket.on("message", async (text) => {
+        text = text.toString();
+        const { id, timestamp } = await prisma.message.create({
+          data: {
+            userId,
+            classroomId,
+            text,
+          },
+          select: {
+            id: true,
+            timestamp: true,
+          },
+        });
+        const message = { id, timestamp, text };
+        chat.emit(classroomId, JSON.stringify(message));
       });
       const onChatMessage = (message) => {
         connection.socket.send(message);

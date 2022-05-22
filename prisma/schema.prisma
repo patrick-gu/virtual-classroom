@@ -54,6 +54,7 @@ model Message {
   text        String
   classroom   Classroom? @relation(fields: [classroomId], references: [id])
   classroomId String?    @db.Uuid
+  timestamp   DateTime   @default(now())
 }
 
 model Quiz {
