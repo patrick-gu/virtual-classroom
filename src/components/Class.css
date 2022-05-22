@@ -37,3 +37,7 @@
 .message_text p, .message_text small{
     margin: 0;
 }
+.chat__reciever{
+    margin-right: auto;
+    background-color: #dcf8c6;
+}
