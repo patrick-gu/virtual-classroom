@@ -139,7 +139,7 @@ export default function Class() {
         </div>
       </div>
       <div className="chat">
-        <h2>Chat</h2>
+        <h2 className="chat1">Chat</h2>
 
         <div className="chat__body ">
           {messages.map((message) => (
@@ -156,7 +156,7 @@ export default function Class() {
                 </strong>
               </p>
               <p>{message.text}</p>
-              
+
               <small className="chat__timestamp">
                 <time dateTime={message.timestamp}>
                   {new Date(message.timestamp).toLocaleString()}
