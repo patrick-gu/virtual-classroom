@@ -20,20 +20,7 @@ export default function Classes() {
       setClassrooms(classrooms);
     })();
   }, [navigate, setToken, token]);
-  const createClass = async () => {
-    const { id, name } = await apiRequest({
-      method: "POST",
-      path: "/classrooms/create",
-
-      token,
-      setToken,
-      navigate,
-    });
-    setClassrooms((classrooms) => [
-      ...classrooms,
-      { id, role: "Teacher", name },
-    ]);
-  };
+  
   return (
     <div className="container">
       <h1>Your classes</h1>
@@ -49,7 +36,7 @@ export default function Classes() {
           <p>Loading...</p>
         )}
       </div>
-      <button onClick={createClass}>Create a new class</button>
+      
     </div>
   );
 }
