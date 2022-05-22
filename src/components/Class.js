@@ -149,13 +149,14 @@ export default function Class() {
               }`}
               key={message.id}
             >
-              <p>{message.text}</p>
-              <p>
+              <p className="chat__name">
                 <strong>
                   {users[message.userId]?.username ?? "Unknown"} -{" "}
                   {users[message.userId]?.role ?? "Unknown"}
                 </strong>
               </p>
+              <p>{message.text}</p>
+              
               <small className="chat__timestamp">
                 <time dateTime={message.timestamp}>
                   {new Date(message.timestamp).toLocaleString()}
