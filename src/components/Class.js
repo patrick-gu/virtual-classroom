@@ -22,10 +22,16 @@ export default function Class() {
       socket.current = newSocket;
     };
     newSocket.onmessage = (message) => {
-      setMessages((messages) => [
-        ...messages,
-        JSON.parse(message.data.toString()),
-      ]);
+      message = JSON.parse(message.data.toString());
+      switch (message.kind) {
+        case "message":
+          setMessages((messages) => [message.message, ...messages]);
+          break;
+        case "messages":
+          setMessages((messages) => [...message.messages, ...messages]);
+          break;
+        default:
+      }
     };
 
     return () => {

@@ -442,7 +442,10 @@ fastify.register(async function (fastify) {
             timestamp: true,
           },
         });
-        const message = { id, timestamp, text };
+        const message = {
+          kind: "message",
+          message: { id, timestamp, text, userId },
+        };
         chat.emit(classroomId, JSON.stringify(message));
       });
       const onChatMessage = (message) => {
@@ -452,6 +455,30 @@ fastify.register(async function (fastify) {
       connection.socket.on("close", () => {
         chat.off(classroomId, onChatMessage);
       });
+
+      const messages = await prisma.message.findMany({
+        select: {
+          id: true,
+          text: true,
+          userId: true,
+          timestamp: true,
+        },
+        where: {
+          classroomId,
+        },
+        orderBy: [
+          {
+            timestamp: "desc",
+          },
+        ],
+        take: 20,
+      });
+      connection.socket.send(
+        JSON.stringify({
+          kind: "messages",
+          messages,
+        })
+      );
     }
   );
 });
