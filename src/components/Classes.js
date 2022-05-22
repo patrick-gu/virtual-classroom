@@ -39,8 +39,8 @@ export default function Classes() {
     ]);
   };
   return (
-    <div className="container">
-      <h1>Your classes</h1>
+    <div className="container text-center">
+      <h1 className="mt-3 mb-4">Your classes</h1>
       <div>
         {classrooms ? (
           classrooms.map(({ id, role, name }) => (

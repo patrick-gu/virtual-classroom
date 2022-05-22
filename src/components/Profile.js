@@ -4,42 +4,43 @@ import { useAuthenticated } from "../utils/auth";
 import { apiRequest } from "../utils/request";
 import "./Profile.css";
 
-const Profile = ({ fName, lName, role, email }) => {
+const Profile = ({}) => {
   const [token, setToken] = useAuthenticated();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("");
   const navigate = useNavigate();
   const logout = () => {
     setToken(null);
     navigate("/login");
   };
-  const [info, setInfo] = useState({});
   useEffect(() => {
     (async () => {
-      setInfo(
-        await apiRequest({
-          method: "GET",
-          path: "/me",
-          token,
-          setToken,
-          navigate,
-        })
-      );
+      const { username, role } = await apiRequest({
+        method: "GET",
+        path: "/classrooms",
+        token,
+        setToken,
+        navigate,
+      });
+      setUsername(username);
+      setRole(role);
     })();
-  }, [token, setToken, navigate]);
+  }, [navigate, setToken, token]);
+
   return (
     <div className="profile">
       <div className="profile-container">
         <img className="profile-pic" src="download.png" alt="profile" />
-        {/* <h3>{`${fName} ${lName}`}</h3> */}
-        <h3>{info.username ?? "Loading..."}</h3>
-        <p>{info.id ?? "Loading..."}</p>
+        <h3>{`${username}`}</h3>
         <p>{role}</p>
-        {/* <a href="mailto:{email}">
+        <a href={`mailto:arpitt682@gmail.com`}>
           <img
             className="icon"
             src="https://cdn4.iconfinder.com/data/icons/ionicons/512/icon-email-512.png"
             alt="email"
           />
-        </a> */}
+        </a>
       </div>
     </div>
   );

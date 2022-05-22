@@ -26,7 +26,7 @@ export async function apiRequest({
     navigate("/login");
     return {};
   } else {
-    alert(responseBody.error);
+    // alert(responseBody.error);
     return {};
   }
 }

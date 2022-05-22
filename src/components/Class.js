@@ -1,11 +1,29 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuthenticated } from "../utils/auth";
 import { apiRequest } from "../utils/request";
+import "./Class.css";
 
 export default function Class() {
   const [token, setToken] = useAuthenticated();
   const { classId } = useParams();
+  const [classroom, setClassroom] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    (async () => {
+      const p = await apiRequest({
+        method: "GET",
+        path: `/classrooms/${classId}`,
+        token,
+        setToken,
+        navigate,
+      });
+      // setClassroom(p);
+      console.log(p);
+    })();
+  }, [navigate, setToken, token]);
+
   const socket = useRef();
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState({});
@@ -53,7 +71,7 @@ export default function Class() {
     name: "Loading...",
   });
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   useEffect(() => {
     (async () => {
       const newClassInfo = await apiRequest({
@@ -100,66 +118,47 @@ export default function Class() {
   };
 
   return (
-    <div>
-      <div>
-        <Link to="/classrooms">Back to all classes</Link>
-        <h1>{classInfo.name}</h1>
-        {classInfo.open !== undefined && (
-          <p>
-            {classInfo.open
-              ? `The classroom code is: ${classInfo.code}`
-              : "This class is currently closed."}
-          </p>
-        )}
-        <p>Class id: {classId}</p>
-        {classInfo.role === "teacher" && (
-          <form onSubmit={changeName}>
-            <input
-              type="text"
-              placeholder="New name"
-              onChange={(e) => setName(e.target.value)}
-            />
-            <input type="submit" value="Change name" />
-          </form>
-        )}
-      </div>
-
-      {quizzes ? (
+    <>
+      <div className="container">
         <div>
-          <h2>Quizzes</h2>
-          {quizzes.map(({ id, name }) => (
-            <div key={id}>
-              <h3>{name}</h3>
-              <p>Description</p>
-            </div>
-          ))}
+          <h2>{classroom}</h2>
+          <p>Class id: {classId}</p>
         </div>
-      ) : null}
-      <div>
+      </div>
+      <div className="chat">
         <h2>Chat</h2>
-        <form onSubmit={sendMessage}>
-          <input
-            type="text"
-            placeholder="Send a message"
-            onChange={(e) => setMessage(e.target.value)}
-          />
-          <input type="submit" value="Send" disabled={!socket.current} />
-        </form>
-        <div>
+
+        <div className="chat__body">
           {messages.map((message) => (
-            <div key={message.id}>
+            <div className="message_text" key={message.id}>
               <p>{message.text}</p>
               <p>
-                <i>{users[message.userId]?.username ?? "Unknown"}</i> -{" "}
-                {users[message.userId]?.role ?? "Unknown"}
+                <strong>
+                  {users[message.userId]?.username ?? "Unknown"} -{" "}
+                  {users[message.userId]?.role ?? "Unknown"}
+                </strong>
               </p>
-              <small>
+              <small className="chat__timestamp">
                 <time dateTime={message.timestamp}>{message.timestamp}</time>
               </small>
             </div>
           ))}
         </div>
       </div>
-    </div>
+      <form className="message_footer" onSubmit={sendMessage}>
+        <input
+          type="text"
+          placeholder="Send a message"
+          className="form-control"
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <input
+          className="hidden"
+          type="submit"
+          value="Send"
+          disabled={!socket.current}
+        />
+      </form>
+    </>
   );
 }
