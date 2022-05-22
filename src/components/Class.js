@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useAuthenticated } from "../utils/auth";
 
 export default function Class() {
@@ -57,6 +57,7 @@ export default function Class() {
   return (
     <div>
       <div>
+        <Link to="/classes">Back to all classes</Link>
         <h1>Class name goes here</h1>
         <p>Class id: {classId}</p>
       </div>

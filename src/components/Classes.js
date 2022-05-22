@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuthenticated } from "../utils/auth";
 import { apiRequest } from "../utils/request";
 
@@ -34,14 +34,15 @@ export default function Classes() {
   };
   return (
     <div className="container">
+      <Link to="/profile">Profile</Link>
       <h1>Your classes</h1>
       <div>
         {classrooms ? (
           classrooms.map(({ id, role, name }) => (
-            <a href={`/classes/${id}`} className="d-block" key={id}>
+            <Link to={`/classes/${id}`} className="d-block" key={id}>
               <h2>{name}</h2>
               <p></p>
-            </a>
+            </Link>
           ))
         ) : (
           <p>Loading...</p>
