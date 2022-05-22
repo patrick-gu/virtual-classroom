@@ -83,6 +83,23 @@ export default function Class() {
     e.preventDefault();
     socket.current.send(message);
   };
+
+  const [name, setName] = useState("");
+  const changeName = async (e) => {
+    e.preventDefault();
+    await apiRequest({
+      method: "POST",
+      path: `/classrooms/${classId}`,
+      token,
+      setToken,
+      body: {
+        name,
+      },
+      navigate,
+    });
+    setClassInfo((classInfo) => ({ ...classInfo, name }));
+  };
+
   return (
     <div>
       <div>
@@ -96,6 +113,16 @@ export default function Class() {
           </p>
         )}
         <p>Class id: {classId}</p>
+        {classInfo.role === "teacher" && (
+          <form onSubmit={changeName}>
+            <input
+              type="text"
+              placeholder="New name"
+              onChange={(e) => setName(e.target.value)}
+            />
+            <input type="submit" value="Change name" />
+          </form>
+        )}
       </div>
 
       {quizzes ? (

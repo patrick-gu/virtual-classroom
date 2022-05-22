@@ -155,6 +155,28 @@ fastify.post(
   }
 );
 
+fastify.get(
+  "/api/v1/me",
+  {
+    schema: {
+      headers: {
+        properties: {
+          authorization: { type: "string" },
+        },
+        required: ["authorization"],
+      },
+    },
+  },
+  async (req, reply) => {
+    const userId = verifySignedToken(req.headers.authorization);
+    const { username } = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { username: true },
+    });
+    reply.send({ success: true, username, id: userId });
+  }
+);
+
 // Creating a classroom
 
 fastify.post(
