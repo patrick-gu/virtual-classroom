@@ -10,10 +10,9 @@ const Profile = ({ fName, lName, role, email }) => {
     setToken(null);
     navigate("/login");
   };
+
   return (
     <div className="profile">
-      <Link to="/classes">Classes</Link>
-      <button onClick={logout}>Logout</button>
       <div className="profile-container">
         <img className="profile-pic" src="download.png" alt="profile" />
         <h3>{`${fName} ${lName}`}</h3>

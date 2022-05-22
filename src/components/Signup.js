@@ -110,6 +110,7 @@ const Signup = () => {
             id="dropdownMenuButton1"
             data-bs-toggle="dropdown"
             aria-expanded="false"
+            name="role"
           >
             Role
           </button>
