@@ -25,7 +25,7 @@ const Signup = () => {
     const { success, error, token } = await response.json();
     if (success) {
       setToken(token);
-      navigate("/classes");
+      navigate("/classrooms");
     } else {
       alert(error);
     }

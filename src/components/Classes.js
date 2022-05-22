@@ -20,20 +20,6 @@ export default function Classes() {
       setClassrooms(classrooms);
     })();
   }, [navigate, setToken, token]);
-  const createClass = async () => {
-    const { id, name } = await apiRequest({
-      method: "POST",
-      path: "/classrooms/create",
-
-      token,
-      setToken,
-      navigate,
-    });
-    setClassrooms((classrooms) => [
-      ...classrooms,
-      { id, role: "Teacher", name },
-    ]);
-  };
   const [classCode, setClassCode] = useState("");
   const joinClass = async (e) => {
     e.preventDefault();
@@ -59,7 +45,7 @@ export default function Classes() {
         {classrooms ? (
           classrooms.map(({ id, role, name }) => (
             <div key={id}>
-              <Link to={`/classes/${id}`} className="d-block">
+              <Link to={`/classrooms/${id}`} className="d-block">
                 <h2>{name}</h2>
               </Link>
               <p>You are a {role}</p>
@@ -69,7 +55,6 @@ export default function Classes() {
           <p>Loading...</p>
         )}
       </div>
-      <button onClick={createClass}>Create a new classroom</button>
       <div>
         <h2>Join a classroom</h2>
         <form onSubmit={joinClass}>

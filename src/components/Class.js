@@ -103,7 +103,7 @@ export default function Class() {
   return (
     <div>
       <div>
-        <Link to="/classes">Back to all classes</Link>
+        <Link to="/classrooms">Back to all classes</Link>
         <h1>{classInfo.name}</h1>
         {classInfo.open !== undefined && (
           <p>
