@@ -128,6 +128,14 @@ export default function Class() {
         <div>
           <h1>{classInfo.name}</h1>
           <p>Class id: {classId}</p>
+          {classInfo.code !== undefined && (
+            <p>
+              {classInfo.code
+                ? `The code to join this classroom is ${classInfo.code}`
+                : "This classroom is not currently open."}
+            </p>
+          )}
+          <p></p>
         </div>
       </div>
       <div className="chat">
