@@ -63,6 +63,7 @@ model Quiz {
   id          String         @id @default(uuid()) @db.Uuid
   classroom   Classroom      @relation(fields: [classroomId], references: [id])
   classroomId String         @db.Uuid
+  name        String
   questions   Question[]
   responses   QuizResponse[]
 }

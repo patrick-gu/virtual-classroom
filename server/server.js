@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const EventEmitter = require("events");
 const crypto = require("crypto");
+const path = require("path");
 
 dotenv.config();
 // dotenv is required to read data from .env file
@@ -43,11 +44,6 @@ const verifySignedToken = function (token) {
 
 const fastify = Fastify({
   logger: true,
-});
-
-fastify.get("/", async (req, reply) => {
-  reply.send({ hello: "world" });
-  console.log("reached");
 });
 
 fastify.post(
@@ -152,6 +148,28 @@ fastify.post(
       return;
     }
     reply.send({ success: true, token: getSignedToken(id) });
+  }
+);
+
+fastify.get(
+  "/api/v1/me",
+  {
+    schema: {
+      headers: {
+        properties: {
+          authorization: { type: "string" },
+        },
+        required: ["authorization"],
+      },
+    },
+  },
+  async (req, reply) => {
+    const userId = verifySignedToken(req.headers.authorization);
+    const { username } = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { username: true },
+    });
+    reply.send({ success: true, username, id: userId });
   }
 );
 
@@ -282,7 +300,7 @@ fastify.get(
   async (req, reply) => {
     const userId = verifySignedToken(req.headers.authorization);
     const classroomId = req.params.id;
-    console.log('------------------', classroomId);
+    console.log("------------------", classroomId);
     if (!isUuid(classroomId)) {
       reply.status(400).send({ error: "Invalid classroom ID" });
       return;
@@ -311,6 +329,7 @@ fastify.get(
     }
     if (userInClassroom.role === "Teacher") {
       reply.send({
+        success: true,
         name: userInClassroom.classroom.name,
         role: "teacher",
         code: userInClassroom.classroom.code,
@@ -318,8 +337,72 @@ fastify.get(
       });
     } else {
       reply.send({
+        success: true,
         name: userInClassroom.classroom.name,
         role: "student",
+      });
+    }
+  }
+);
+
+fastify.post(
+  "/api/v1/classrooms/:id",
+  {
+    schema: {
+      params: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+        },
+      },
+      headers: {
+        properties: {
+          authorization: { type: "string" },
+        },
+        required: ["authorization"],
+      },
+      body: {
+        properties: {
+          name: { type: "string" },
+        },
+      },
+    },
+  },
+  async (req, reply) => {
+    const userId = verifySignedToken(req.headers.authorization);
+    const classroomId = req.params.id;
+    if (!isUuid(classroomId)) {
+      reply.status(400).send({ error: "Invalid classroom ID" });
+      return;
+    }
+    const name = req.body.name;
+    const userInClassroom = await prisma.userInClassroom.findUnique({
+      select: {
+        role: true,
+      },
+      where: {
+        userId_classroomId: {
+          userId,
+          classroomId,
+        },
+      },
+    });
+    if (!userInClassroom) {
+      reply.status(404).send({ error: "Not in classroom" });
+      return;
+    }
+    if (userInClassroom.role === "Teacher") {
+      await prisma.classroom.update({
+        where: { id: classroomId },
+        data: { name },
+      });
+      reply.send({
+        success: true,
+      });
+    } else {
+      reply.status(403).send({
+        success: false,
+        error: "You can't change the name of the classroom.",
       });
     }
   }
@@ -381,11 +464,22 @@ fastify.post(
         role: "Student",
       },
     });
+    const { username } = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { username: true },
+    });
+    chat.emit(
+      classroomId,
+      JSON.stringify({
+        kind: "users",
+        users: [{ role: "Student", username, id: userId }],
+      })
+    );
 
     reply.send({
       success: true,
-      classroomId,
-      classroomName,
+      id: classroomId,
+      name: classroomName,
     });
   }
 );
@@ -527,6 +621,8 @@ fastify.register(async function (fastify) {
         return;
       }
 
+      connection.socket.send(JSON.stringify({ kind: "userId", userId }));
+
       connection.socket.on("message", async (text) => {
         text = text.toString();
         const { id, timestamp } = await prisma.message.create({
@@ -577,9 +673,35 @@ fastify.register(async function (fastify) {
           messages,
         })
       );
+
+      const users = await prisma.userInClassroom.findMany({
+        where: { classroomId },
+        select: {
+          role: true,
+          user: { select: { username: true } },
+          userId: true,
+        },
+      });
+
+      connection.socket.send(
+        JSON.stringify({
+          kind: "users",
+          users: users.map(({ role, user: { username }, userId }) => ({
+            role,
+            username,
+            id: userId,
+          })),
+        })
+      );
     }
   );
 });
+
+if (process.env.NODE_ENV === "production") {
+  fastify.register(require("@fastify/static"), {
+    root: path.join(__dirname, "../build"),
+  });
+}
 
 const start = async () => {
   try {

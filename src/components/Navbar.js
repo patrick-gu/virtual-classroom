@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useContext } from "react";
 import "./Navbar.css";
-import { useAuthenticated } from "../utils/auth";
+import { AuthContext, useAuthenticated, useTokenState } from "../utils/auth";
 import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
-  const [token, setToken] = useAuthenticated();
+  const [token, setToken] = useContext(AuthContext);
   const navigate = useNavigate();
   const logout = () => {
     setToken(null);
@@ -21,9 +21,8 @@ const Navbar = () => {
     </button>
           
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
-          
-            {token ? (
-                <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+          {token ? (
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
                 <Link className="nav-link" aria-current="page" to="/profile">
                   Profile
@@ -66,22 +65,24 @@ const Navbar = () => {
                   </li>
                 </ul>
               </li>
-              </ul>
-            ) : (
-                <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li className="nav-item">
+            </ul>
+          ) : (
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+              <li className="nav-item">
                 <Link className="nav-link" aria-current="page" to="/">
                   Home
                 </Link>
               </li>
-                </ul>
-            )}
-           
-     
+            </ul>
+          )}
+
           <div className="d-flex" role="auth">
             {token === null ? (
               <>
-                <Link className="btn btn-outline-success ms-3 login" to="/login">
+                <Link
+                  className="btn btn-outline-success ms-3 login"
+                  to="/login"
+                >
                   Login
                 </Link>
                 <Link className="btn btn-outline-success" to="/register">
@@ -89,13 +90,9 @@ const Navbar = () => {
                 </Link>
               </>
             ) : (
-              <Link
-                className="btn btn-outline-success ms-3"
-                onClick={logout}
-                to="#"
-              >
+              <button className="btn btn-outline-success ms-3" onClick={logout}>
                 Logout
-              </Link>
+              </button>
             )}
           </div>
         </div>

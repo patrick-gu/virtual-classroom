@@ -19,7 +19,7 @@ const Create = () => {
       body: { classroomName },
     });
     if (id) {
-      navigate("/classrooms");
+      navigate(`/classrooms/${id}`);
     } else {
       alert(error);
     }

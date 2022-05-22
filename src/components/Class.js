@@ -26,13 +26,14 @@ export default function Class() {
 
   const socket = useRef();
   const [messages, setMessages] = useState([]);
+  const [users, setUsers] = useState({});
+  const [userId, setUserId] = useState(null);
   useEffect(() => {
     if (socket.current !== undefined) return;
     socket.current = null;
     const url = new URL(
       `/api/v1/classrooms/${classId}/chat`,
-      "http://localhost:8080"
-      //   window.location.href
+      process.env.NODE_ENV === "production" ? "/" : "http://localhost:8080"
     );
     url.protocol = url.protocol.replace("http", "ws");
     const newSocket = new WebSocket(url);
@@ -49,6 +50,18 @@ export default function Class() {
         case "messages":
           setMessages((messages) => [...message.messages, ...messages]);
           break;
+        case "users":
+          setUsers((users) => {
+            users = { ...users };
+            for (const { username, id, role } of message.users) {
+              users[id] = { username, role };
+            }
+            return users;
+          });
+          break;
+        case "userId":
+          setUserId(message.userId);
+          break;
         default:
       }
     };
@@ -57,6 +70,24 @@ export default function Class() {
       socket.current?.close();
     };
   });
+
+  const [classInfo, setClassInfo] = useState({
+    name: "Loading...",
+  });
+
+  // const navigate = useNavigate();
+  useEffect(() => {
+    (async () => {
+      const newClassInfo = await apiRequest({
+        method: "GET",
+        path: `/classrooms/${classId}`,
+        token,
+        setToken,
+        navigate,
+      });
+      setClassInfo(newClassInfo);
+    })();
+  }, [classId, setClassInfo, token, setToken, navigate]);
 
   const quizzes = [
     {
@@ -72,39 +103,77 @@ export default function Class() {
   const sendMessage = (e) => {
     e.preventDefault();
     socket.current.send(message);
+    e.target.reset();
   };
+
+  const [name, setName] = useState("");
+  const changeName = async (e) => {
+    e.preventDefault();
+    await apiRequest({
+      method: "POST",
+      path: `/classrooms/${classId}`,
+      token,
+      setToken,
+      body: {
+        name,
+      },
+      navigate,
+    });
+    setClassInfo((classInfo) => ({ ...classInfo, name }));
+  };
+
   return (
     <>
       <div className="container">
         <div>
-          <h2>{classroom}</h2>
+          <h1>{classInfo.name}</h1>
           <p>Class id: {classId}</p>
+          {classInfo.code !== undefined && (
+            <p>
+              {classInfo.code
+                ? `The code to join this classroom is ${classInfo.code}`
+                : "This classroom is not currently open."}
+            </p>
+          )}
+          <p></p>
         </div>
       </div>
       <div className="chat">
         <h2>Chat</h2>
-        
+
         <div className="chat__body">
           {messages.map((message) => (
             <div className="message_text" key={message.id}>
               <p>{message.text}</p>
+              <p>
+                <strong>
+                  {users[message.userId]?.username ?? "Unknown"} -{" "}
+                  {users[message.userId]?.role ?? "Unknown"}
+                </strong>
+              </p>
               <small className="chat__timestamp">
-                <time dateTime={message.timestamp}>{message.timestamp}</time>
+                <time dateTime={message.timestamp}>
+                  {new Date(message.timestamp).toLocaleString()}
+                </time>
               </small>
             </div>
           ))}
         </div>
-
       </div>
       <form className="message_footer" onSubmit={sendMessage}>
-          <input
-            type="text"
-            placeholder="Send a message"
-            className="form-control"
-            onChange={(e) => setMessage(e.target.value)}
-          />
-          <input className="hidden" type="submit" value="Send" disabled={!socket.current} />
-        </form>
+        <input
+          type="text"
+          placeholder="Send a message"
+          className="form-control"
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <input
+          className="hidden"
+          type="submit"
+          value="Send"
+          disabled={!socket.current}
+        />
+      </form>
     </>
   );
 }

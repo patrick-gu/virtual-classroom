@@ -1,11 +1,10 @@
-import React from "react";
-import {  useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthenticated } from "../utils/auth";
+import { apiRequest } from "../utils/request";
 import "./Profile.css";
-import { useEffect, useState } from "react";
-import { apiRequest } from "../utils/request";  
 
-const Profile = ({ }) => {
+const Profile = ({}) => {
   const [token, setToken] = useAuthenticated();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -17,7 +16,7 @@ const Profile = ({ }) => {
   };
   useEffect(() => {
     (async () => {
-      const { username , role } = await apiRequest({
+      const { username, role } = await apiRequest({
         method: "GET",
         path: "/classrooms",
         token,
