@@ -1,10 +1,10 @@
 import React from "react";
 import "./Navbar.css";
-import { useAuthenticated } from "../utils/auth";
+import { useAuthenticated, useTokenState } from "../utils/auth";
 import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
-  const [token, setToken] = useAuthenticated();
+  const [token, setToken] = useTokenState();
   const navigate = useNavigate();
   const logout = () => {
     setToken(null);
@@ -28,9 +28,8 @@ const Navbar = () => {
           <span className="navbar-toggler-icon"></span>
         </button>
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
-          
-            {token ? (
-                <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+          {token ? (
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
                 <a className="nav-link" aria-current="page" href="/profile">
                   Profile
@@ -73,18 +72,17 @@ const Navbar = () => {
                   </li>
                 </ul>
               </li>
-              </ul>
-            ) : (
-                <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li className="nav-item">
+            </ul>
+          ) : (
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+              <li className="nav-item">
                 <a className="nav-link" aria-current="page" href="/">
                   Home
                 </a>
               </li>
-                </ul>
-            )}
-           
-     
+            </ul>
+          )}
+
           <div className="d-flex" role="auth">
             {token === null ? (
               <>
