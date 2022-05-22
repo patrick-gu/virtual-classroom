@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useContext } from "react";
 import "./Navbar.css";
-import { useAuthenticated, useTokenState } from "../utils/auth";
+import { AuthContext, useAuthenticated, useTokenState } from "../utils/auth";
 import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
-  const [token, setToken] = useTokenState();
+  const [token, setToken] = useContext(AuthContext);
   const navigate = useNavigate();
   const logout = () => {
     setToken(null);
@@ -13,9 +13,9 @@ const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg bg-dark">
       <div className="container-fluid">
-        <a className="navbar-brand" href="/">
+        <Link className="navbar-brand" to="/">
           Virtuo
-        </a>
+        </Link>
         <button
           className="navbar-toggler"
           type="button"
@@ -31,14 +31,14 @@ const Navbar = () => {
           {token ? (
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className="nav-link" aria-current="page" href="/profile">
+                <Link className="nav-link" aria-current="page" to="/profile">
                   Profile
-                </a>
+                </Link>
               </li>
               <li className="nav-item">
-                <a className="nav-link" aria-current="page" href="/classes">
+                <Link className="nav-link" aria-current="page" to="/classes">
                   Classes
-                </a>
+                </Link>
               </li>
               <li className="nav-item dropdown">
                 <a
@@ -53,22 +53,22 @@ const Navbar = () => {
                 </a>
                 <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
                   <li>
-                    <a className="dropdown-item" href="/classrooms/create">
+                    <Link className="dropdown-item" to="/classrooms/create">
                       Create Classroom
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a className="dropdown-item" href="/classrooms/join">
+                    <Link className="dropdown-item" to="/classrooms/join">
                       Join Classroom
-                    </a>
+                    </Link>
                   </li>
                   <li>
                     <hr className="dropdown-divider" />
                   </li>
                   <li>
-                    <a className="dropdown-item" href="/quiz/create">
+                    <Link className="dropdown-item" to="/quiz/create">
                       Create Quiz
-                    </a>
+                    </Link>
                   </li>
                 </ul>
               </li>
@@ -76,9 +76,9 @@ const Navbar = () => {
           ) : (
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <a className="nav-link" aria-current="page" href="/">
+                <Link className="nav-link" aria-current="page" to="/">
                   Home
-                </a>
+                </Link>
               </li>
             </ul>
           )}
@@ -86,12 +86,15 @@ const Navbar = () => {
           <div className="d-flex" role="auth">
             {token === null ? (
               <>
-                <a className="btn btn-outline-success ms-3 login" href="/login">
+                <Link
+                  className="btn btn-outline-success ms-3 login"
+                  to="/login"
+                >
                   Login
-                </a>
-                <a className="btn btn-outline-success" href="/register">
+                </Link>
+                <Link className="btn btn-outline-success" to="/register">
                   Register
-                </a>
+                </Link>
               </>
             ) : (
               <a
