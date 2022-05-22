@@ -1,0 +1,14 @@
+body{
+    margin: 0;
+    padding: 0;
+}
+
+.nav-link, .navbar-brand{
+    color: white;
+}
+.nav-link:hover, .navbar-brand:hover, .nav-link:focus, .navbar-brand:focus{
+    color: greenyellow
+}
+.login{
+    margin: 0 10px;
+}

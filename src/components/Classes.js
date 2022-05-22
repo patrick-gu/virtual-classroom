@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthenticated } from "../utils/auth";
 import { apiRequest } from "../utils/request";
+import './Classes.css';
 
 export default function Classes() {
   const [token, setToken] = useAuthenticated();
@@ -23,6 +24,7 @@ export default function Classes() {
     const { id, name } = await apiRequest({
       method: "POST",
       path: "/classrooms/create",
+
       token,
       setToken,
       navigate,
@@ -52,7 +54,6 @@ export default function Classes() {
   };
   return (
     <div className="container">
-      <Link to="/profile">Profile</Link>
       <h1>Your classes</h1>
       <div>
         {classrooms ? (
